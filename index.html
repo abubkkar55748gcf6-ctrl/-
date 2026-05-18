@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Phone Lock Screen</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 10px;
+        }
+
+        .phone-frame {
+            width: 375px;
+            height: 812px;
+            background: #000;
+            border-radius: 40px;
+            border: 12px solid #333;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .phone-frame::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 28px;
+            background: #000;
+            border-radius: 0 0 20px 20px;
+            z-index: 10;
+        }
+
+        .lock-screen {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 50px 20px 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .lock-screen::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .top-info {
+            text-align: center;
+            color: #fff;
+            z-index: 2;
+            margin-top: 20px;
+        }
+
+        .time {
+            font-size: 56px;
+            font-weight: 300;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .date {
+            font-size: 16px;
+            color: #aaa;
+            font-weight: 300;
+        }
+
+        .lock-icon {
+            text-align: center;
+            margin: 40px 0;
+            z-index: 2;
+        }
+
+        .lock-icon svg {
+            width: 80px;
+            height: 80px;
+            stroke: #667eea;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .lock-icon.unlocked svg {
+            stroke: #4ade80;
+        }
+
+        .middle-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+            width: 100%;
+        }
+
+        .password-input-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .password-display {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            min-height: 40px;
+        }
+
+        .password-dot {
+            width: 12px;
+            height: 12px;
+            background: #667eea;
+            border-radius: 50%;
+            animation: pulse 0.3s ease-out;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(0);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            font-size: 14px;
+            text-align: center;
+            min-height: 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .error-message.show {
+            opacity: 1;
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 80px);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .key {
+            width: 80px;
+            height: 80px;
+            background: rgba(102, 126, 234, 0.2);
+            border: 2px solid rgba(102, 126, 234, 0.5);
+            border-radius: 50%;
+            font-size: 28px;
+            font-weight: 500;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .key:hover {
+            background: rgba(102, 126, 234, 0.4);
+            border-color: rgba(102, 126, 234, 0.8);
+            transform: scale(1.1);
+        }
+
+        .key:active {
+            transform: scale(0.95);
+            background: rgba(102, 126, 234, 0.6);
+        }
+
+        .key.delete {
+            grid-column: 3;
+            background: rgba(255, 107, 107, 0.2);
+            border-color: rgba(255, 107, 107, 0.5);
+            font-size: 20px;
+        }
+
+        .key.delete:hover {
+            background: rgba(255, 107, 107, 0.4);
+            border-color: rgba(255, 107, 107, 0.8);
+        }
+
+        .key.enter {
+            grid-column: 1 / 4;
+            width: 100%;
+            background: rgba(74, 222, 128, 0.2);
+            border-color: rgba(74, 222, 128, 0.5);
+            font-size: 20px;
+        }
+
+        .key.enter:hover {
+            background: rgba(74, 222, 128, 0.4);
+            border-color: rgba(74, 222, 128, 0.8);
+        }
+
+        .bottom-info {
+            color: #aaa;
+            font-size: 12px;
+            text-align: center;
+            z-index: 2;
+            margin-bottom: 20px;
+        }
+
+        .success-message {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(74, 222, 128, 0.9);
+            color: #fff;
+            padding: 20px 40px;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: 600;
+            z-index: 100;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            0% {
+                transform: translate(-50%, -100%);
+                opacity: 0;
+            }
+            100% {
+                transform: translate(-50%, -50%);
+                opacity: 1;
+            }
+        }
+
+        .phone-opened {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 200;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .phone-opened.active {
+            display: flex;
+        }
+
+        .opened-content {
+            text-align: center;
+            color: #fff;
+        }
+
+        .opened-content h1 {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        .opened-content p {
+            font-size: 18px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .unlock-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid #fff;
+            color: #fff;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .unlock-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .unlock-btn:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <div class="lock-screen" id="lockScreen">
+            <div class="top-info">
+                <div class="time" id="time">9:41</div>
+                <div class="date" id="date">Monday, May 18</div>
+            </div>
+
+            <div class="middle-section">
+                <div class="lock-icon" id="lockIcon">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="6" y="10" width="12" height="10" rx="1"/>
+                        <path d="M8 10V8a4 4 0 0 1 8 0v2"/>
+                    </svg>
+                </div>
+
+                <div class="password-input-section">
+                    <div class="password-display" id="passwordDisplay"></div>
+                    <div class="error-message" id="errorMessage"></div>
+
+                    <div class="keypad" id="keypad">
+                        <button class="key" data-key="1">1</button>
+                        <button class="key" data-key="2">2</button>
+                        <button class="key" data-key="3">3</button>
+                        <button class="key" data-key="4">4</button>
+                        <button class="key" data-key="5">5</button>
+                        <button class="key" data-key="6">6</button>
+                        <button class="key" data-key="7">7</button>
+                        <button class="key" data-key="8">8</button>
+                        <button class="key" data-key="9">9</button>
+                        <button class="key" data-key="0">0</button>
+                        <button class="key delete" data-key="delete">⌫</button>
+                        <button class="key enter" data-key="enter">UNLOCK</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bottom-info">
+                Correct Password: 1234567890
+            </div>
+
+            <div class="success-message" id="successMessage">
+                ✓ Phone Unlocked!
+            </div>
+        </div>
+
+        <div class="phone-opened" id="phoneOpened">
+            <div class="opened-content">
+                <h1>📱 Welcome!</h1>
+                <p>Your phone is now unlocked</p>
+                <p>Security Status: ✓ Active</p>
+                <button class="unlock-btn" onclick="lockPhone()">Lock Phone</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const correctPassword = '1234567890';
+        let enteredPassword = '';
+
+        const timeElement = document.getElementById('time');
+        const dateElement = document.getElementById('date');
+        const passwordDisplay = document.getElementById('passwordDisplay');
+        const errorMessage = document.getElementById('errorMessage');
+        const lockIcon = document.getElementById('lockIcon');
+        const successMessage = document.getElementById('successMessage');
+        const lockScreen = document.getElementById('lockScreen');
+        const phoneOpened = document.getElementById('phoneOpened');
+        const keypad = document.getElementById('keypad');
+
+        // Update time and date
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            timeElement.textContent = `${hours}:${minutes}`;
+
+            const options = { weekday: 'long', month: 'long', day: 'numeric' };
+            dateElement.textContent = now.toLocaleDateString('en-US', options);
+        }
+
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // Handle keypad input
+        const keys = keypad.querySelectorAll('.key');
+        keys.forEach(key => {
+            key.addEventListener('click', () => {
+                const keyValue = key.dataset.key;
+
+                if (keyValue === 'delete') {
+                    enteredPassword = enteredPassword.slice(0, -1);
+                    clearError();
+                } else if (keyValue === 'enter') {
+                    checkPassword();
+                } else {
+                    enteredPassword += keyValue;
+                    clearError();
+                }
+
+                updatePasswordDisplay();
+            });
+        });
+
+        // Update password display
+        function updatePasswordDisplay() {
+            passwordDisplay.innerHTML = '';
+            for (let i = 0; i < enteredPassword.length; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'password-dot';
+                passwordDisplay.appendChild(dot);
+            }
+        }
+
+        // Check password
+        function checkPassword() {
+            if (enteredPassword === correctPassword) {
+                successMessage.style.display = 'block';
+                lockIcon.classList.add('unlocked');
+                
+                setTimeout(() => {
+                    lockScreen.style.display = 'none';
+                    phoneOpened.classList.add('active');
+                }, 500);
+            } else {
+                showError('Wrong password! Try again.');
+                enteredPassword = '';
+                updatePasswordDisplay();
+                lockIcon.classList.remove('unlocked');
+            }
+        }
+
+        // Show error message
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('show');
+        }
+
+        // Clear error message
+        function clearError() {
+            errorMessage.classList.remove('show');
+            errorMessage.textContent = '';
+        }
+
+        // Lock phone again
+        function lockPhone() {
+            enteredPassword = '';
+            updatePasswordDisplay();
+            clearError();
+            successMessage.style.display = 'none';
+            lockIcon.classList.remove('unlocked');
+            lockScreen.style.display = 'flex';
+            phoneOpened.classList.remove('active');
+        }
+
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (lockScreen.style.display !== 'none') {
+                if (e.key >= '0' && e.key <= '9') {
+                    enteredPassword += e.key;
+                    clearError();
+                    updatePasswordDisplay();
+                } else if (e.key === 'Backspace') {
+                    enteredPassword = enteredPassword.slice(0, -1);
+                    clearError();
+                    updatePasswordDisplay();
+                } else if (e.key === 'Enter') {
+                    checkPassword();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
